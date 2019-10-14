@@ -1,92 +1,43 @@
 import React from 'react';
-import { Button, SectionList, StyleSheet, Text, View } from 'react-native';
+import { Button, FlatList, ScrollView, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants'
-import PropTypes from 'prop-types'
+
+import contacts, { compareNames } from './contacts'
+import ScrollViewContacts from './ScrollViewContacts'
+import FlatListContacts from './FlatListContacts'
+import SectionListContacts from './SectionListContacts'
 import AddContactForm from './AddContactForm'
-
-import contacts, { compareNames } from './contacts';
-
-
-const Row = props => (
-  <View style={styles.row}>
-    <Text>{props.name}</Text>
-    <Text>{props.phone}</Text>
-  </View>
-)
-
-const ContactsList = props => {
-  const contactsByLetter = props.contacts.reduce((obj, contact) => {
-    const firstLetter = contact.name[0].toUpperCase()
-    return {
-      ...obj,
-      [firstLetter]: [...(obj[firstLetter] || []), contact],
-    }
-  }, {})
-
-  const sections = Object.keys(contactsByLetter).sort().map(letter => ({
-    title: letter,
-    data: contactsByLetter[letter],
-  }))
-
-  return (
-    <SectionList
-      renderItem={renderItem}
-      renderSectionHeader={renderSectionHeader}
-      sections={sections}
-    />
-  )
-}
-const renderItem = obj => <Row {...obj.item} />
-const renderSectionHeader = obj => <Text>{obj.section.title}</Text>
-
-ContactsList.propTypes = {
-  contacts: PropTypes.array,
-}
 
 export default class App extends React.Component {
   state = {
-    showContacts: false,
+    showContacts: true,
     showForm: false,
     contacts: contacts,
+  }
+
+  addContact = newContact => {
+    this.setState(prevState => ({ showForm: false, contacts: [...prevState.contacts, newContact] }))
   }
 
   toggleContacts = () => {
     this.setState(prevState => ({ showContacts: !prevState.showContacts }))
   }
 
-  toggleForm = () => {
-    this.setState(prevState => ({ showForm: !prevState.showForm }))
+  sort = () => {
+    this.setState(prevState => ({ contacts: prevState.contacts.sort(compareNames) }))
   }
 
-  sort = () => {
-    this.setState(prevState => ({
-      contacts: [...prevState.contacts].sort(compareNames),
-    }))
+  showForm = () => {
+    this.setState({ showForm: true })
   }
 
   render() {
-    if (this.state.showForm) return <AddContactForm/>
-    
+    if (this.state.showForm) return <AddContactForm onSubmit={this.addContact} />
     return (
       <View style={styles.container}>
         <Button title="toggle contacts" onPress={this.toggleContacts} />
-        <Button title="add contact" onPress={this.toggleForm} />
-        {this.state.showContacts && <ContactsList contacts={this.state.contacts} />}
-        {/* {this.state.showContacts && (
-          <FlatList
-            renderItem={this.renderItem}
-            data={this.state.contacts}
-          />
-        )} */}
-        {/* 
-        {this.state.showContacts && (
-          <ScrollView>
-            {contacts.map(contact => (
-              <Row {...contact} />
-            ))}
-          </ScrollView>
-        )}
-         */}
+        <Button title="add contact" onPress={this.showForm} />
+        {this.state.showContacts && <SectionListContacts contacts={this.state.contacts} />}
       </View>
     );
   }
@@ -98,7 +49,4 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     paddingTop: Constants.statusBarHeight,
   },
-  row: {
-    padding: 20,
-  }
 });

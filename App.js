@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, SectionList, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants'
 import PropTypes from 'prop-types'
+import AddContactForm from './AddContactForm'
 
 import contacts, { compareNames } from './contacts';
 
@@ -45,11 +46,16 @@ ContactsList.propTypes = {
 export default class App extends React.Component {
   state = {
     showContacts: false,
+    showForm: false,
     contacts: contacts,
   }
 
   toggleContacts = () => {
     this.setState(prevState => ({ showContacts: !prevState.showContacts }))
+  }
+
+  toggleForm = () => {
+    this.setState(prevState => ({ showForm: !prevState.showForm }))
   }
 
   sort = () => {
@@ -59,10 +65,12 @@ export default class App extends React.Component {
   }
 
   render() {
+    if (this.state.showForm) return <AddContactForm/>
+    
     return (
       <View style={styles.container}>
         <Button title="toggle contacts" onPress={this.toggleContacts} />
-        <Button title="sort" onPress={this.sort} />
+        <Button title="add contact" onPress={this.toggleForm} />
         {this.state.showContacts && <ContactsList contacts={this.state.contacts} />}
         {/* {this.state.showContacts && (
           <FlatList

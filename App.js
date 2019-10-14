@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, FlatList, StyleSheet, Text, View } from 'react-native';
+import { Button, SectionList, StyleSheet, Text, View } from 'react-native';
 import Constants from 'expo-constants'
+import PropTypes from 'prop-types'
 
 import contacts, { compareNames } from './contacts';
 
@@ -11,6 +12,35 @@ const Row = props => (
     <Text>{props.phone}</Text>
   </View>
 )
+
+const ContactsList = props => {
+  const contactsByLetter = props.contacts.reduce((obj, contact) => {
+    const firstLetter = contact.name[0].toUpperCase()
+    return {
+      ...obj,
+      [firstLetter]: [...(obj[firstLetter] || []), contact],
+    }
+  }, {})
+
+  const sections = Object.keys(contactsByLetter).sort().map(letter => ({
+    title: letter,
+    data: contactsByLetter[letter],
+  }))
+
+  return (
+    <SectionList
+      renderItem={renderItem}
+      renderSectionHeader={renderSectionHeader}
+      sections={sections}
+    />
+  )
+}
+const renderItem = obj => <Row {...obj.item} />
+const renderSectionHeader = obj => <Text>{obj.section.title}</Text>
+
+ContactsList.propTypes = {
+  contacts: PropTypes.array,
+}
 
 export default class App extends React.Component {
   state = {
@@ -28,19 +58,18 @@ export default class App extends React.Component {
     }))
   }
 
-  renderItem = obj => <Row {...obj.item}/>
-
   render() {
     return (
       <View style={styles.container}>
         <Button title="toggle contacts" onPress={this.toggleContacts} />
         <Button title="sort" onPress={this.sort} />
-        {this.state.showContacts && (
+        {this.state.showContacts && <ContactsList contacts={this.state.contacts} />}
+        {/* {this.state.showContacts && (
           <FlatList
             renderItem={this.renderItem}
             data={this.state.contacts}
           />
-        )}
+        )} */}
         {/* 
         {this.state.showContacts && (
           <ScrollView>
